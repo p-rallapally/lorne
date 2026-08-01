@@ -12,3 +12,4 @@ class Event:
     sold_out: bool | None
     source_url: str
     source_platform: str
+    scraped_at: str

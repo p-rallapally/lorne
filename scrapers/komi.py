@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass
 from typing import Any
 from urllib.parse import urlparse
 import re
-
+from datetime import datetime, timezone
 import requests
 
 
@@ -137,6 +137,19 @@ class KomiScraper:
                 return value
 
         return None
+
+
+    @staticmethod
+    def _clean_location(value: Any) -> str | None:
+        if value is None:
+            return None
+
+        location = str(value).strip()
+
+        # Remove trailing commas, such as "Pittsburgh, PA,"
+        location = location.rstrip(",").strip()
+
+        return location or None
 
     def _normalize_event_item(
         self,
@@ -295,12 +308,14 @@ class KomiScraper:
                 if value not in (None, "")
             )
 
+        scraped_at = datetime.now(timezone.utc).isoformat()
+
         return Event(
             performer=performer,
             event_id=str(event_id) if event_id else None,
             date=str(date) if date is not None else None,
             venue=str(venue) if venue is not None else None,
-            location=str(location) if location is not None else None,
+            location=self._clean_location(location),
             ticket_url=(
                 str(ticket_url)
                 if ticket_url is not None
@@ -313,6 +328,7 @@ class KomiScraper:
             ),
             source_url=self.tour_page_url,
             source_platform=source_platform,
+            scraped_at=scraped_at,
         )
 
     def parse_events(
