@@ -1,5 +1,4 @@
 from __future__ import annotations
-from pprint import pprint
 from dataclasses import asdict, dataclass
 from typing import Any
 from urllib.parse import urlparse
@@ -8,18 +7,7 @@ import re
 import requests
 
 
-@dataclass
-class Event:
-    performer: str
-    event_id: str | None
-    date: str | None
-    venue: str | None
-    location: str | None
-    ticket_url: str | None
-    sold_out: bool | None
-    source_url: str
-    source_platform: str
-
+from models import Event
 
 class KomiScraper:
     API_URL = "https://i.komi.io/profiles/v1/published"
@@ -397,38 +385,3 @@ class KomiScraper:
         payload = self.fetch_profile()
         return self.parse_events(payload)
 
-
-def main() -> None:
-    scraper = KomiScraper(
-        "https://michaellongfellow.komi.io/"
-    )
-
-    events = scraper.scrape()
-
-    print(f"Found {len(events)} events.\n")
-
-    for event in events:
-        print(asdict(event))
-
-
-def main() -> None:
-    urls = [
-        "https://sarahsquirm.komi.io/",
-        "https://michaellongfellow.komi.io/",
-    ]
-
-    for url in urls:
-        scraper = KomiScraper(url)
-        events = scraper.scrape()
-
-        print(f"\n{url}")
-        print(f"Found {len(events)} events.\n")
-
-        for event in events:
-            print(asdict(event))
-
-
-
-
-if __name__ == "__main__":
-    main()
