@@ -42,11 +42,20 @@ def main() -> None:
                 )
 
             scraper = scraper_class(
-                performer["tour_page_url"]
-            )
-            events = scraper.scrape()
+            performer["tour_page_url"],
+            performer=performer["performer"],
+        )
+            events = [
+                event
+                for event in scraper.scrape()
+                if is_upcoming(event.date)
+            ]
         except Exception as exc:
             print(f"FAILED: {performer['performer']}: {exc}")
+            continue
+
+        if not events:
+            print(f"{performer['performer']}: No upcoming events")
             continue
 
         print(f"{performer['performer']}: {len(events)} events")

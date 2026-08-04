@@ -86,27 +86,17 @@ class LinktreeScraper(BaseScraper):
             for month in MONTHS
         )
 
-        # Most US tour listings include a two-letter state abbreviation.
-        contains_state = bool(
-            re.search(r"\b[A-Z]{2}\b", upper)
+        contains_day = bool(
+            re.search(r"\b\d{1,2}(?:ST|ND|RD|TH)?\b", upper)
         )
 
-        return contains_month and contains_state
+        return contains_month and contains_day
 
     @staticmethod
     def _extract_dates(
         text: str,
         default_year: int,
     ) -> tuple[str | None, str | None]:
-        """
-        Supports common Linktree labels such as:
-
-        AUGUST 13
-        AUGUST 14-15
-        JULY 30-AUG 01
-        JULY 09-11
-        """
-
         upper = text.upper()
 
         month_pattern = "|".join(
@@ -115,8 +105,12 @@ class LinktreeScraper(BaseScraper):
 
         match = re.search(
             rf"\b({month_pattern})\s+"
-            rf"(\d{{1,2}})"
-            rf"(?:\s*-\s*(?:({month_pattern})\s+)?(\d{{1,2}}))?",
+            rf"(\d{{1,2}})(?:ST|ND|RD|TH)?"
+            rf"(?:\s*-\s*"
+            rf"(?:(?:({month_pattern})\s+)?"
+            rf"(\d{{1,2}})(?:ST|ND|RD|TH)?"
+            rf"(?!\s*:)(?!\s*(?:AM|PM)\b)"
+            rf"))?",
             upper,
         )
 
@@ -151,7 +145,6 @@ class LinktreeScraper(BaseScraper):
 
             end_year = default_year
 
-            # Handles a range that crosses December into January.
             if end_month < start_month:
                 end_year += 1
 
@@ -172,42 +165,74 @@ class LinktreeScraper(BaseScraper):
 
     @staticmethod
     def _extract_location(text: str) -> str | None:
-        """
-        Find common CITY, ST or CITY ST patterns.
-        """
+        upper = re.sub(r"\s+", " ", text.upper()).strip()
 
-        upper = text.upper()
-
-        # Examples:
-        # INDIANAPOLIS, IN
-        # PITTSBURGH PA
-        # RICHMOND HEIGHTS, MO
-        matches = list(
-            re.finditer(
-                r"\b([A-Z][A-Z .'-]+?),?\s+([A-Z]{2})\b",
-                upper,
-            )
+        month_pattern = "|".join(
+            sorted(MONTHS, key=len, reverse=True)
         )
 
-        if not matches:
-            return None
+        # Format 1:
+        # AUGUST 13 - INDIANAPOLIS, IN - HELIUM COMEDY CLUB
+        month_first = re.search(
+            rf"\b(?:{month_pattern})\s+\d{{1,2}}"
+            rf"(?:ST|ND|RD|TH)?"
+            rf"(?:\s*-\s*\d{{1,2}}(?:ST|ND|RD|TH)?)?"
+            rf"\s*[-–—]\s*"
+            rf"(.+?)(?=\s*[-–—]\s*[^-]+$|$)",
+            upper,
+        )
 
-        match = matches[-1]
-        city = match.group(1).strip(" ,-")
-        state = match.group(2)
+        if month_first:
+            location = month_first.group(1).strip(" ,-")
+            return LinktreeScraper._normalize_location(location)
 
-        # Remove leading date fragments accidentally captured as part of city.
-        city = re.sub(
-            r"^(?:JAN(?:UARY)?|FEB(?:RUARY)?|MAR(?:CH)?|"
-            r"APR(?:IL)?|MAY|JUN(?:E)?|JUL(?:Y)?|"
-            r"AUG(?:UST)?|SEP(?:T(?:EMBER)?)?|OCT(?:OBER)?|"
-            r"NOV(?:EMBER)?|DEC(?:EMBER)?)"
-            r"\s+\d{1,2}(?:-\d{1,2})?\s*[-–—]?\s*",
-            "",
-            city,
-        ).strip()
+        # Format 2:
+        # PHILLY - AUGUST 13TH
+        # FORT COLLINS, C.O. - AUGUST 20TH - 22ND
+        location_first = re.split(
+            rf"\s*[-–—]\s*(?=(?:{month_pattern})\b)",
+            upper,
+            maxsplit=1,
+        )
 
-        return f"{city.title()}, {state}" if city else None
+        if len(location_first) > 1:
+            location = location_first[0].strip(" ,-")
+
+            location = re.sub(
+                r"^\**NETFLIX TAPING\**\s*",
+                "",
+                location,
+            ).strip()
+
+            return LinktreeScraper._normalize_location(location)
+
+        return None
+
+    
+    @staticmethod
+    def _normalize_location(value: str) -> str | None:
+        location = value.strip()
+
+        # C.O. -> CO, I.N. -> IN
+        location = re.sub(
+            r"\b([A-Z])\.([A-Z])\.",
+            r"\1\2",
+            location,
+        )
+
+        # Properly capitalize city while preserving state abbreviations.
+        match = re.fullmatch(
+            r"(.+?),?\s+([A-Z]{2})",
+            location,
+        )
+
+        if match:
+            city = match.group(1).strip(" ,").title()
+            state = match.group(2)
+            return f"{city}, {state}"
+
+        return location.title() or None
+
 
     @staticmethod
     def _make_event_id(
@@ -230,7 +255,7 @@ class LinktreeScraper(BaseScraper):
     def parse_events(self, html: str) -> list[Event]:
         soup = BeautifulSoup(html, "html.parser")
 
-        performer = self.performer or self.url.rstrip("/").split("/")[-1]
+        performer = (self.performer or self.url.rstrip("/").split("/")[-1])
         current_year = datetime.now(timezone.utc).year
         scraped_at = datetime.now(timezone.utc).isoformat()
 
