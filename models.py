@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 
-
 @dataclass
 class Event:
     performer: str
     event_id: str | None
     date: str | None
+    end_date: str | None
     venue: str | None
     location: str | None
     ticket_url: str | None
@@ -13,3 +13,4 @@ class Event:
     source_url: str
     source_platform: str
     scraped_at: str
+

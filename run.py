@@ -3,7 +3,7 @@ import csv
 from dataclasses import asdict
 from pathlib import Path
 from database import initialize_database, upsert_events
-from scrapers.komi import KomiScraper
+from scrapers import SCRAPERS
 
 
 ROOT = Path(__file__).parent
@@ -24,7 +24,7 @@ def main() -> None:
         if performer["active"].lower() != "true":
             continue
 
-        if performer["scraper"] != "komi":
+        if performer["scraper"] not in SCRAPERS:
             print(
                 f"Skipping {performer['performer']}: "
                 f"unsupported scraper {performer['scraper']}"
@@ -32,7 +32,18 @@ def main() -> None:
             continue
 
         try:
-            scraper = KomiScraper(performer["tour_page_url"])
+            scraper_name = performer["scraper"]
+
+            scraper_class = SCRAPERS.get(scraper_name)
+
+            if scraper_class is None:
+                raise ValueError(
+                    f"Unknown scraper '{scraper_name}'."
+                )
+
+            scraper = scraper_class(
+                performer["tour_page_url"]
+            )
             events = scraper.scrape()
         except Exception as exc:
             print(f"FAILED: {performer['performer']}: {exc}")

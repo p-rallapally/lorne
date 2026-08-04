@@ -5,11 +5,10 @@ from urllib.parse import urlparse
 import re
 from datetime import datetime, timezone
 import requests
-
-
+from scrapers.base import BaseScraper
 from models import Event
 
-class KomiScraper:
+class KomiScraper(BaseScraper):
     API_URL = "https://i.komi.io/profiles/v1/published"
 
     @staticmethod
@@ -24,7 +23,13 @@ class KomiScraper:
 
         return None
 
-    def __init__(self, tour_page_url: str) -> None:
+    def __init__(
+    self,
+    tour_page_url: str,
+    performer: str | None = None,
+) -> None:
+        super().__init__(url=tour_page_url, performer=performer)
+        self.performer = performer
         self.tour_page_url = tour_page_url.rstrip("/") + "/"
 
         parsed = urlparse(self.tour_page_url)
@@ -154,6 +159,7 @@ class KomiScraper:
     def _normalize_event_item(
         self,
         item: dict[str, Any],
+        
         performer: str,
         source_platform: str,
     ) -> Event | None:
@@ -314,6 +320,7 @@ class KomiScraper:
             performer=performer,
             event_id=str(event_id) if event_id else None,
             date=str(date) if date is not None else None,
+            end_date=None,
             venue=str(venue) if venue is not None else None,
             location=self._clean_location(location),
             ticket_url=(
@@ -329,6 +336,7 @@ class KomiScraper:
             source_url=self.tour_page_url,
             source_platform=source_platform,
             scraped_at=scraped_at,
+            
         )
 
     def parse_events(
@@ -338,10 +346,11 @@ class KomiScraper:
         data = payload.get("data", {})
 
         performer = (
-            data.get("profileInfo", {}).get("name")
-            or data.get("handle")
-            or self.handle
-        )
+        self.performer    
+        or data.get("profileInfo", {}).get("name")
+        or data.get("handle")
+        or self.handle
+    )
 
         events: list[Event] = []
         seen_ids: set[str] = set()

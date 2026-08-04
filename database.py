@@ -27,6 +27,7 @@ def initialize_database() -> None:
                 performer TEXT NOT NULL,
                 event_id TEXT NOT NULL,
                 date TEXT,
+                end_date TEXT,
                 venue TEXT,
                 location TEXT,
                 ticket_url TEXT,
@@ -52,6 +53,7 @@ def upsert_events(events: list[Event]) -> None:
                     performer,
                     event_id,
                     date,
+                    end_date,
                     venue,
                     location,
                     ticket_url,
@@ -62,13 +64,15 @@ def upsert_events(events: list[Event]) -> None:
                     last_seen,
                     active
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
 
                 ON CONFLICT(source_platform, event_id)
                 DO UPDATE SET
                     performer = excluded.performer,
                     date = excluded.date,
+                    end_date = excluded.end_date,
                     venue = excluded.venue,
+                    
                     location = excluded.location,
                     ticket_url = excluded.ticket_url,
                     sold_out = excluded.sold_out,
@@ -80,6 +84,7 @@ def upsert_events(events: list[Event]) -> None:
                     event.performer,
                     event.event_id,
                     event.date,
+                    event.end_date,
                     event.venue,
                     event.location,
                     event.ticket_url,
