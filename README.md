@@ -4,13 +4,11 @@
 
 ## Why?
 
-Every performer has their own touring website, and keeping up with 17 different Instagram accounts and signing up for 17 different mailing lists when 95% of their events aren't in my area seems redundant. 
+Every performer has their own touring website. Keeping up with 17 different Instagram accounts and mailing lists when 95% of their shows aren't near me seemed redundant.
 
-The aim of this project is to efficiently standardize and aggregate event dates, highlighting the ones that are in a given location.
+This project standardizes and aggregates tour dates across platforms, making it easy to find performances by location.
 
 ## How it works
-
-The pipeline consists of three stages:
 
 ```
 Performer URLs
@@ -25,19 +23,17 @@ Performer URLs
         └── CSV export
 ```
 
-Each scraper is responsible for extracting event information from a specific website platform and converting it into a common `Event` model.
-
-The runner reads a configuration file of performers, invokes the appropriate scraper, and aggregates all discovered events into a single output.
+Each scraper extracts events from a specific platform and converts them into a common `Event` model. The runner reads a performer configuration file, invokes the appropriate scraper, and aggregates all discovered events into a single dataset.
 
 ## Current support
 
-| Platform | Status | Notes |
-|----------|--------|-------|
-| Komi | ✅ | Supports native Komi events |
-| Komi + Bandsintown | ✅ | Automatically detects embedded Bandsintown feeds |
-| Linktree | 🚧 | Planned |
-| Punchup | 🚧 | Planned |
-| Personal websites | 🚧 | Planned |
+| Platform | Status |
+|----------|--------|
+| Komi | ✅ |
+| Komi + Bandsintown | ✅ |
+| Linktree | ✅ |
+| Punchup | ✅ |
+| Personal websites | 🚧 |
 
 ## Event schema
 
@@ -48,6 +44,7 @@ Event(
     performer,
     event_id,
     date,
+    end_date,
     venue,
     location,
     ticket_url,
@@ -58,51 +55,55 @@ Event(
 )
 ```
 
-Regardless of where the event originated, downstream code never needs to know the underlying platform.
+Downstream code never needs to know where an event came from.
+
+## Features
+
+- Multi-platform event aggregation
+- SQLite database + CSV export
+- Automatic event normalization
+- Geocoding for venue locations
+- Radius-based event search
 
 ## Running
-
-Clone the repository
 
 ```bash
 git clone https://github.com/p-rallapally/scraper-night-live.git
 cd scraper-night-live
-```
 
-Create a virtual environment
-
-```bash
 python -m venv .venv
 source .venv/bin/activate
-```
 
-Install dependencies
-
-```bash
 pip install -r requirements.txt
 ```
 
-Run the pipeline
+Create a `.env` file:
+
+```text
+PUNCHUP_SUPABASE_KEY=...
+```
+
+Run the pipeline:
 
 ```bash
 python run.py
 ```
 
-Results are written to
+Events are written to:
 
 ```
 output/events.csv
 ```
 
-and stored in
+and stored in:
 
 ```
 data/events.db
 ```
 
-## Project goals
+## Roadmap
 
-- Aggregate performances from all current SNL cast members
-- Support the most common event-hosting platforms
-- Provide a unified event dataset independent of source
-- Eventually power a searchable interface for finding performances near a user's location
+- Support additional event-hosting platforms
+- Detect newly added, removed, and updated events
+- Interactive map of upcoming performances
+- CLI and web interface for location-based search

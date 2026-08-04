@@ -41,6 +41,7 @@ fonttools==4.62.1
 frozendict @ file:///Users/builder/cbouss/perseverance-python-buildout/croot/frozendict_1728632786107/work
 geographiclib==2.1
 geopy==2.5.0
+greenlet==3.5.4
 h11==0.16.0
 httpcore==1.0.9
 httptools==0.8.0
@@ -80,6 +81,7 @@ pexpect @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_fc
 pillow==12.2.0
 pkce @ file:///Users/builder/cbouss/perseverance-python-buildout/croot/pkce_1728608978818/work
 platformdirs @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_f8agv_yepz/croot/platformdirs_1744273051859/work
+playwright==1.62.0
 pluggy @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_70ykkrsb12/croot/pluggy_1733169619735/work
 prompt_toolkit @ file:///Users/builder/cbouss/perseverance-python-buildout/croot/prompt-toolkit_1728649636792/work
 psutil @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_ed123tcwwq/croot/psutil_1736369384437/work
@@ -91,6 +93,7 @@ pydantic @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_a
 pydantic-extra-types==2.11.1
 pydantic-settings @ file:///Users/builder/cbouss/buildout/croot/pydantic-settings_1735844448358/work
 pydantic_core @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_61l2kqcxd3/croot/pydantic-core_1750754748005/work
+pyee==13.0.1
 Pygments @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_d3k0kb020b/croot/pygments_1744664134805/work
 PyJWT @ file:///Users/builder/cbouss/buildout/croot/pyjwt_1739486501140/work
 pyparsing==3.3.2
