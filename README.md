@@ -60,10 +60,29 @@ Downstream code never needs to know where an event came from.
 ## Features
 
 - Multi-platform event aggregation
-- SQLite database + CSV export
-- Automatic event normalization
-- Geocoding for venue locations
-- Radius-based event search
+- Standardized event schema across sources
+- Stateful SQLite storage with event upserts
+- Detection of new, existing, and removed events
+- CSV export of active upcoming events
+- Geocoding of event locations
+- Location and radius-based event search
+- Automated daily scraping with GitHub Actions
+
+## Searching
+
+Search for upcoming events near a location:
+
+```bash
+python search.py --near "Santa Barbara, CA"
+
+```
+
+Specify a radius and/or performer: 
+
+```bash
+python search.py --near "San Francisco, CA" --radius 100 --performer "Michael Longfellow" 
+
+```
 
 ## Running
 
@@ -126,6 +145,7 @@ data/events.db
 ## Roadmap
 
 - Support additional event-hosting platforms
-- Detect newly added, removed, and updated events
+- Improve automated change reporting/notifications
 - Interactive map of upcoming performances
-- CLI and web interface for location-based search
+- Web interface for location-based discovery
+- Tests and CI
