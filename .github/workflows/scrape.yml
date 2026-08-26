@@ -1,0 +1,64 @@
+name: Scrape events
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily at 15:17 UTC (07:17 PST / 08:17 PDT).
+    - cron: "17 15 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scrape-events
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Verify required secret
+        env:
+          PUNCHUP_SUPABASE_KEY: ${{ secrets.PUNCHUP_SUPABASE_KEY }}
+        run: test -n "$PUNCHUP_SUPABASE_KEY"
+
+      - name: Run deterministic tests
+        run: >-
+          python -m pytest -q
+          tests/test_database.py
+          tests/test_run.py
+          tests/test_changes.py
+
+      - name: Scrape events
+        env:
+          PUNCHUP_SUPABASE_KEY: ${{ secrets.PUNCHUP_SUPABASE_KEY }}
+        run: python run.py
+
+      - name: Print change digest
+        run: python changes.py
+
+      - name: Commit updated event state
+        run: |
+          git add data/events.db output/events.csv
+          if git diff --cached --quiet; then
+            echo "No event-state changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update scraped events"
+          git push

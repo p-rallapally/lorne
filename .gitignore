@@ -3,5 +3,6 @@
 __pycache__/
 *.pyc
 .DS_Store
-data/events.db
-output/*.csv
+# These are intentionally tracked so scheduled GitHub Actions runs retain state.
+!data/events.db
+!output/events.csv

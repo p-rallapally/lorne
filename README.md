@@ -77,6 +77,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Create and install the virtual environment once. On later terminal sessions,
+reuse it with only:
+
+```bash
+source .venv/bin/activate
+```
+
 Create a `.env` file:
 
 ```text
@@ -88,6 +95,21 @@ Run the pipeline:
 ```bash
 python run.py
 ```
+
+Show the concise summary from the latest pipeline run:
+
+```bash
+python changes.py
+```
+
+## GitHub Actions automation
+
+The `Scrape events` workflow runs daily at 15:17 UTC and can also be run
+manually from the repository's **Actions** tab. It commits `data/events.db`
+and `output/events.csv` so event history persists between hosted runners.
+
+Before the first run, add `PUNCHUP_SUPABASE_KEY` under **Settings → Secrets
+and variables → Actions**, then commit the current database and CSV once.
 
 Events are written to:
 
