@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lorne</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <p class="hero__eyebrow">LORNE</p>
+        <h1 class="hero__title">Live from near you, it's Saturday Night!</h1>
+      </header>
+
+      <section class="filters" aria-label="Event filters">
+        <div class="filters__row">
+          <label class="field">
+            <span class="field__label">SEARCH</span>
+            <input id="q-input" type="search" placeholder="Performer, venue, or city">
+          </label>
+
+          <label class="field">
+            <span class="field__label">LOCATION</span>
+            <input id="location-input" type="search" placeholder="Los Angeles, CA">
+          </label>
+
+          <div class="field">
+            <span class="field__label">DATES</span>
+            <div class="field__dates">
+              <input id="start-date" type="date" aria-label="Start date">
+              <span>to</span>
+              <input id="end-date" type="date" aria-label="End date">
+            </div>
+          </div>
+        </div>
+
+        <div class="filters__row filters__row--secondary">
+          <div class="chips" aria-label="Quick locations">
+            <span class="chips__label">POPULAR</span>
+            <button class="chip" type="button" data-location="New York, NY" aria-pressed="false">New York</button>
+            <button class="chip" type="button" data-location="Los Angeles, CA" aria-pressed="false">Los Angeles</button>
+            <button class="chip" type="button" data-location="Chicago, IL" aria-pressed="false">Chicago</button>
+          </div>
+
+          <div class="quick-actions" aria-label="Quick date filters">
+            <button class="quick-date" type="button" data-range="weekend" aria-pressed="false">This weekend</button>
+            <button class="quick-date" type="button" data-range="30days" aria-pressed="false">Next 30 days</button>
+            <button class="quick-date" type="button" data-range="all" aria-pressed="false">All dates</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="results" aria-label="Events">
+        <div class="results__header">
+          <span id="result-count" class="results__count"></span>
+          <label class="sort">
+            Sort by
+            <select id="sort-select">
+              <option value="date_asc">Soonest</option>
+              <option value="date_desc">Latest</option>
+              <option value="performer">Performer</option>
+            </select>
+          </label>
+        </div>
+
+        <p id="status-region" class="status status--loading" role="status">
+          Finding shows…
+        </p>
+        <div id="event-grid" class="grid" hidden></div>
+      </section>
+    </main>
+  </body>
+</html>
