@@ -130,6 +130,19 @@ def latest_scrape_run() -> sqlite3.Row | None:
         ).fetchone()
 
 
+def active_events() -> list[sqlite3.Row]:
+    """Return the events currently available to the web application."""
+    with connect() as connection:
+        return connection.execute(
+            """
+            SELECT performer, date, venue, location, ticket_url, sold_out
+            FROM events
+            WHERE active = 1
+            ORDER BY date, performer
+            """
+        ).fetchall()
+
+
 def upsert_events(events: list[Event]) -> None:
     with connect() as connection:
         _upsert_events(connection, events, _now())

@@ -115,6 +115,18 @@ Run the pipeline:
 python run.py
 ```
 
+Run the website locally:
+
+```bash
+flask --app app run
+```
+
+In production (including Render), use:
+
+```bash
+gunicorn app:app
+```
+
 Show the concise summary from the latest pipeline run:
 
 ```bash
