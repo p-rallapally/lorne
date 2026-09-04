@@ -1,6 +1,6 @@
 # Lorne
 
-> A data pipeline for tracking live performances by current and former Saturday Night Live cast members.
+> A scraper, API, and website for tracking live performances by current and former Saturday Night Live cast members.
 
 ## Why?
 
@@ -19,11 +19,11 @@ Performer URLs
         ▼
  Standardized Event objects
         │
-        ├── SQLite database
+        ├── SQLite database ──► FastAPI ──► Web interface
         └── CSV export
 ```
 
-Each scraper extracts events from a specific platform and converts them into a common `Event` model. The runner reads a performer configuration file, invokes the appropriate scraper, and aggregates all discovered events into a single dataset.
+Each scraper extracts events from a specific platform and converts them into a common `Event` model. The runner reads a performer configuration file, invokes the appropriate scraper, and aggregates all discovered events into a single dataset. The FastAPI application reads from SQLite and serves both the JSON API and static frontend; web requests never run the scrapers directly.
 
 ## Current support
 
@@ -66,6 +66,8 @@ Downstream code never needs to know where an event came from.
 - CSV export of active upcoming events
 - Geocoding of event locations
 - Location and radius-based event search
+- FastAPI endpoints for events, performers, and search
+- Responsive event-card interface with text, location, date, and sort filters
 - Automated daily scraping with GitHub Actions
 
 ## Searching
@@ -74,14 +76,52 @@ Search for upcoming events near a location:
 
 ```bash
 python search.py --near "Santa Barbara, CA"
-
 ```
 
 Specify a radius and/or performer: 
 
 ```bash
 python search.py --near "San Francisco, CA" --radius 100 --performer "Michael Longfellow" 
+```
 
+Radius searches require coordinates in the database. Populate missing event
+coordinates with:
+
+```bash
+python geocode.py
+```
+
+## Web API
+
+Run the server and open `http://127.0.0.1:8000`. Interactive API documentation
+is available at `http://127.0.0.1:8000/docs`.
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/events` | List and filter events |
+| `GET /api/search` | Search performer, venue, and location text |
+| `GET /api/performers` | List performers and upcoming event counts |
+
+`/api/events` accepts these query parameters:
+
+| Parameter | Description |
+|-----------|-------------|
+| `performer` | Performer-name substring |
+| `location` | City/location text; also checks venue names |
+| `q` | Search across performer, venue, and location |
+| `near` | Geocode a city or address for radius search |
+| `radius` | Radius in miles used with `near`; defaults to 100 |
+| `start_date`, `end_date` | Inclusive dates in `YYYY-MM-DD` format |
+| `sort` | `date_asc`, `date_desc`, `performer`, or `distance` |
+| `include_all` | Include past and inactive events |
+| `limit`, `offset` | Paginate results |
+
+Examples:
+
+```bash
+curl "http://127.0.0.1:8000/api/events?location=Dallas&sort=date_asc"
+curl "http://127.0.0.1:8000/api/events?performer=Sarah&start_date=2026-09-01"
+curl "http://127.0.0.1:8000/api/events?near=Chicago&radius=50&sort=distance"
 ```
 
 ## Running
@@ -121,6 +161,10 @@ Run the website locally:
 uvicorn app:app --reload
 ```
 
+The frontend is served by FastAPI at `http://127.0.0.1:8000/`. Do not open
+`static/index.html` directly because its `/api/...` requests need the running
+application.
+
 In production (including Render), use:
 
 ```bash
@@ -159,5 +203,4 @@ data/events.db
 - Support additional event-hosting platforms
 - Improve automated change reporting/notifications
 - Interactive map of upcoming performances
-- Web interface for location-based discovery
 - Tests and CI
