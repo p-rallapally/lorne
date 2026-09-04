@@ -8,11 +8,12 @@ Local dev:
     uvicorn app:app --reload
 
 Production (Render):
-    gunicorn -k uvicorn.workers.UvicornWorker app:app
+    uvicorn app:app --host 0.0.0.0 --port $PORT
 """
 
 from __future__ import annotations
 
+import csv
 import sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -26,12 +27,43 @@ from pydantic import BaseModel
 
 from database import connect, initialize_database
 from geocode import initialize_geocoding_schema
+from normalization import linktree_location, linktree_venue
 from search import distance_miles, geocode_search_location, validate_date
 
 ROOT = Path(__file__).parent
 STATIC_DIR = ROOT / "static"
+PERFORMERS_FILE = ROOT / "data" / "performers.csv"
 
 SortOption = Literal["date_asc", "date_desc", "performer", "distance"]
+CastStatus = Literal["current", "alumni"]
+
+
+def load_cast_statuses() -> dict[str, CastStatus]:
+    with PERFORMERS_FILE.open(newline="", encoding="utf-8") as file:
+        rows = list(csv.DictReader(file))
+
+    statuses: dict[str, CastStatus] = {}
+    for row in rows:
+        status = row.get("cast_status")
+        if status not in {"current", "alumni"}:
+            raise RuntimeError(
+                f"Invalid cast_status for {row.get('performer')!r}: {status!r}"
+            )
+        statuses[row["performer"]] = status
+    return statuses
+
+
+CAST_STATUSES = load_cast_statuses()
+
+
+def cast_status_for(performer: str) -> CastStatus:
+    try:
+        return CAST_STATUSES[performer]
+    except KeyError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Missing cast_status metadata for {performer}",
+        ) from exc
 
 
 @asynccontextmanager
@@ -65,7 +97,10 @@ app.add_middleware(
 
 
 class EventOut(BaseModel):
+    event_id: str
+    source_platform: str
     performer: str
+    cast_status: CastStatus
     date: Optional[str] = None
     end_date: Optional[str] = None
     venue: Optional[str] = None
@@ -83,6 +118,7 @@ class EventsResponse(BaseModel):
 
 class PerformerOut(BaseModel):
     performer: str
+    cast_status: CastStatus
     upcoming_count: int
 
 
@@ -195,11 +231,22 @@ def _apply_near_and_sort(
 
     events = [
         EventOut(
+            event_id=row["event_id"],
+            source_platform=row["source_platform"],
             performer=row["performer"],
+            cast_status=cast_status_for(row["performer"]),
             date=row["date"],
             end_date=row["end_date"],
-            venue=row["venue"],
-            location=row["location"],
+            venue=(
+                linktree_venue(row["venue"])
+                if row["source_platform"] == "linktree"
+                else row["venue"]
+            ),
+            location=(
+                linktree_location(row["venue"]) or row["location"]
+                if row["source_platform"] == "linktree"
+                else row["location"]
+            ),
             ticket_url=row["ticket_url"] or row["source_url"],
             sold_out=bool(row["sold_out"]) if row["sold_out"] is not None else None,
             source_url=row["source_url"],
@@ -226,10 +273,13 @@ def _validate_dates(
     start_date: Optional[str], end_date: Optional[str]
 ) -> tuple[Optional[str], Optional[str]]:
     try:
-        return (
+        dates = (
             validate_date(start_date, "start_date"),
             validate_date(end_date, "end_date"),
         )
+        if dates[0] and dates[1] and dates[0] > dates[1]:
+            raise ValueError("start_date cannot be after end_date.")
+        return dates
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -309,7 +359,11 @@ def list_performers(
         rows = connection.execute(query).fetchall()
 
     performers = [
-        PerformerOut(performer=row["performer"], upcoming_count=row["upcoming_count"])
+        PerformerOut(
+            performer=row["performer"],
+            cast_status=cast_status_for(row["performer"]),
+            upcoming_count=row["upcoming_count"],
+        )
         for row in rows
     ]
     return PerformersResponse(count=len(performers), performers=performers)

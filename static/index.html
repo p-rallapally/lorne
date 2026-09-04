@@ -12,63 +12,85 @@
       <header class="hero">
         <p class="hero__eyebrow">LORNE</p>
         <h1 class="hero__title">Live from near you, it's Saturday Night!</h1>
+        <nav class="tabs" aria-label="Main views">
+          <button class="tab tab--active" type="button" data-view="events">Events</button>
+          <button class="tab" type="button" data-view="performers">Performers</button>
+          <button class="tab" type="button" data-view="saved">Saved <span id="saved-count">0</span></button>
+        </nav>
       </header>
 
-      <section class="filters" aria-label="Event filters">
-        <div class="filters__row">
-          <label class="field">
-            <span class="field__label">SEARCH</span>
-            <input id="q-input" type="search" placeholder="Performer, venue, or city">
-          </label>
-
-          <label class="field">
-            <span class="field__label">LOCATION</span>
-            <input id="location-input" type="search" placeholder="Los Angeles, CA">
-          </label>
-
-          <div class="field">
-            <span class="field__label">DATES</span>
-            <div class="field__dates">
-              <input id="start-date" type="date" aria-label="Start date">
-              <span>to</span>
-              <input id="end-date" type="date" aria-label="End date">
+      <section id="events-view" class="view">
+        <section class="filters" aria-label="Event filters">
+          <div class="filters__row filters__row--four">
+            <label class="field">
+              <span class="field__label">SEARCH</span>
+              <input id="q-input" type="search" placeholder="Performer, venue, or city">
+            </label>
+            <label class="field">
+              <span class="field__label">LOCATION</span>
+              <input id="location-input" type="search" placeholder="Los Angeles, CA">
+            </label>
+            <label class="field">
+              <span class="field__label">DISTANCE</span>
+              <select id="radius-select">
+                <option value="">Match location text</option>
+                <option value="25">Within 25 miles</option>
+                <option value="50">Within 50 miles</option>
+                <option value="100">Within 100 miles</option>
+                <option value="250">Within 250 miles</option>
+              </select>
+            </label>
+            <div class="field">
+              <span class="field__label">DATES</span>
+              <div class="field__dates">
+                <input id="start-date" type="date" aria-label="Start date">
+                <span>to</span>
+                <input id="end-date" type="date" aria-label="End date">
+              </div>
             </div>
           </div>
-        </div>
-
-        <div class="filters__row filters__row--secondary">
-          <div class="chips" aria-label="Quick locations">
-            <span class="chips__label">POPULAR</span>
-            <button class="chip" type="button" data-location="New York, NY" aria-pressed="false">New York</button>
-            <button class="chip" type="button" data-location="Los Angeles, CA" aria-pressed="false">Los Angeles</button>
-            <button class="chip" type="button" data-location="Chicago, IL" aria-pressed="false">Chicago</button>
+          <div class="filters__row filters__row--secondary">
+            <div class="chips" aria-label="Quick locations">
+              <span class="chips__label">POPULAR</span>
+              <button class="chip" type="button" data-location="New York, NY" aria-pressed="false">New York</button>
+              <button class="chip" type="button" data-location="Los Angeles, CA" aria-pressed="false">Los Angeles</button>
+              <button class="chip" type="button" data-location="Chicago, IL" aria-pressed="false">Chicago</button>
+            </div>
+            <div class="quick-actions" aria-label="Quick date filters">
+              <button class="quick-date" type="button" data-range="weekend" aria-pressed="false">This weekend</button>
+              <button class="quick-date" type="button" data-range="30days" aria-pressed="false">Next 30 days</button>
+              <button class="quick-date" type="button" data-range="all" aria-pressed="false">All dates</button>
+            </div>
           </div>
+        </section>
 
-          <div class="quick-actions" aria-label="Quick date filters">
-            <button class="quick-date" type="button" data-range="weekend" aria-pressed="false">This weekend</button>
-            <button class="quick-date" type="button" data-range="30days" aria-pressed="false">Next 30 days</button>
-            <button class="quick-date" type="button" data-range="all" aria-pressed="false">All dates</button>
+        <section class="results" aria-label="Events">
+          <div class="results__header">
+            <span id="result-count" class="results__count"></span>
+            <label class="sort">Sort by
+              <select id="sort-select">
+                <option value="date_asc">Soonest</option>
+                <option value="date_desc">Latest</option>
+                <option value="performer">Performer</option>
+                <option value="distance">Distance</option>
+              </select>
+            </label>
           </div>
-        </div>
+          <p id="status-region" class="status status--loading" role="status">Finding shows…</p>
+          <div id="event-grid" class="grid" hidden></div>
+        </section>
       </section>
 
-      <section class="results" aria-label="Events">
-        <div class="results__header">
-          <span id="result-count" class="results__count"></span>
-          <label class="sort">
-            Sort by
-            <select id="sort-select">
-              <option value="date_asc">Soonest</option>
-              <option value="date_desc">Latest</option>
-              <option value="performer">Performer</option>
-            </select>
-          </label>
-        </div>
+      <section id="performers-view" class="view" hidden>
+        <div class="results__header"><h2>Performers</h2><span id="performer-count" class="results__count"></span></div>
+        <p id="performer-status" class="status" role="status">Loading performers…</p>
+        <div id="performer-grid" class="grid" hidden></div>
+      </section>
 
-        <p id="status-region" class="status status--loading" role="status">
-          Finding shows…
-        </p>
-        <div id="event-grid" class="grid" hidden></div>
+      <section id="saved-view" class="view" hidden>
+        <div class="results__header"><h2>Saved shows</h2></div>
+        <p id="saved-status" class="status status--empty">Save an event to find it here.</p>
+        <div id="saved-grid" class="grid" hidden></div>
       </section>
     </main>
   </body>

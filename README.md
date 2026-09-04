@@ -2,6 +2,8 @@
 
 > A scraper, API, and website for tracking live performances by current and former Saturday Night Live cast members.
 
+**Live site:** [lorne.onrender.com](https://lorne.onrender.com/)
+
 ## Why?
 
 Every performer has their own touring website. Keeping up with 17 different Instagram accounts and mailing lists when 95% of their shows aren't near me seemed redundant.
@@ -57,6 +59,13 @@ Event(
 
 Downstream code never needs to know where an event came from.
 
+## Performer metadata
+
+`data/performers.csv` is the source of truth for performer-level metadata. Its
+`cast_status` column accepts `current` or `alumni`. The API joins that metadata
+onto event responses so the frontend can use semantic date accents without
+inferring cast status from scraped event data.
+
 ## Features
 
 - Multi-platform event aggregation
@@ -64,31 +73,25 @@ Downstream code never needs to know where an event came from.
 - Stateful SQLite storage with event upserts
 - Detection of new, existing, and removed events
 - CSV export of active upcoming events
-- Geocoding of event locations
-- Location and radius-based event search
+- Text location and geocoded radius search
 - FastAPI endpoints for events, performers, and search
-- Responsive event-card interface with text, location, date, and sort filters
+- Responsive Events, Performers, and Saved views
+- Browser-local saved events with no account required
+- Text, location, radius, date, and sort filters
 - Automated daily scraping with GitHub Actions
 
 ## Searching
 
-Search for upcoming events near a location:
+Search for upcoming events by location:
 
 ```bash
-python search.py --near "Santa Barbara, CA"
+python search.py --location "Dallas"
 ```
 
-Specify a radius and/or performer: 
+Combine location and performer filters:
 
 ```bash
-python search.py --near "San Francisco, CA" --radius 100 --performer "Michael Longfellow" 
-```
-
-Radius searches require coordinates in the database. Populate missing event
-coordinates with:
-
-```bash
-python geocode.py
+python search.py --location "Dallas" --performer "Michael Longfellow"
 ```
 
 ## Web API
@@ -109,7 +112,7 @@ is available at `http://127.0.0.1:8000/docs`.
 | `performer` | Performer-name substring |
 | `location` | City/location text; also checks venue names |
 | `q` | Search across performer, venue, and location |
-| `near` | Geocode a city or address for radius search |
+| `near` | City or address used for radius search |
 | `radius` | Radius in miles used with `near`; defaults to 100 |
 | `start_date`, `end_date` | Inclusive dates in `YYYY-MM-DD` format |
 | `sort` | `date_asc`, `date_desc`, `performer`, or `distance` |
@@ -153,6 +156,7 @@ Run the pipeline:
 
 ```bash
 python run.py
+python geocode.py
 ```
 
 Run the website locally:
@@ -165,11 +169,17 @@ The frontend is served by FastAPI at `http://127.0.0.1:8000/`. Do not open
 `static/index.html` directly because its `/api/...` requests need the running
 application.
 
+The deployed version is available at [lorne.onrender.com](https://lorne.onrender.com/).
+
 In production (including Render), use:
 
 ```bash
 uvicorn app:app --host 0.0.0.0 --port $PORT
 ```
+
+The repository's `render.yaml` contains the same build and start commands.
+Pushing the latest commit to the branch connected to Render triggers deployment
+when automatic deploys are enabled.
 
 Show the concise summary from the latest pipeline run:
 

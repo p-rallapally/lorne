@@ -1,8 +1,8 @@
-performer,tour_page_url,scraper,active
-Sarah Sherman,https://sarahsquirm.komi.io/,komi,true
-Michael Longfellow,https://michaellongfellow.komi.io/,komi,true
-Devon Walker,https://devonwalker.komi.io/,komi,true
-James Austin Johnson,https://linktr.ee/jajcenter,linktree,true
-Andrew Dismukes,https://linktr.ee/andrew_vinny,linktree,true
-Emil Wakim,https://linktr.ee/emilwakim,linktree,true
-Tommy Brennan,https://punchup.live/tommybrennan,punchup,true
+performer,tour_page_url,scraper,active,cast_status
+Sarah Sherman,https://sarahsquirm.komi.io/,komi,true,current
+Michael Longfellow,https://michaellongfellow.komi.io/,komi,true,alumni
+Devon Walker,https://devonwalker.komi.io/,komi,true,alumni
+James Austin Johnson,https://linktr.ee/jajcenter,linktree,true,current
+Andrew Dismukes,https://linktr.ee/andrew_vinny,linktree,true,current
+Emil Wakim,https://linktr.ee/emilwakim,linktree,true,alumni
+Tommy Brennan,https://punchup.live/tommybrennan,punchup,true,current

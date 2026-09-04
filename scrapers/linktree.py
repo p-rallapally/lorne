@@ -7,6 +7,7 @@ from urllib.parse import urljoin, urlparse
 import requests
 from bs4 import BeautifulSoup
 from models import Event
+from normalization import linktree_location, linktree_venue
 from scrapers.base import BaseScraper
 
 
@@ -165,48 +166,7 @@ class LinktreeScraper(BaseScraper):
 
     @staticmethod
     def _extract_location(text: str) -> str | None:
-        upper = re.sub(r"\s+", " ", text.upper()).strip()
-
-        month_pattern = "|".join(
-            sorted(MONTHS, key=len, reverse=True)
-        )
-
-        # Format 1:
-        # AUGUST 13 - INDIANAPOLIS, IN - HELIUM COMEDY CLUB
-        month_first = re.search(
-            rf"\b(?:{month_pattern})\s+\d{{1,2}}"
-            rf"(?:ST|ND|RD|TH)?"
-            rf"(?:\s*-\s*\d{{1,2}}(?:ST|ND|RD|TH)?)?"
-            rf"\s*[-–—]\s*"
-            rf"(.+?)(?=\s*[-–—]\s*[^-]+$|$)",
-            upper,
-        )
-
-        if month_first:
-            location = month_first.group(1).strip(" ,-")
-            return LinktreeScraper._normalize_location(location)
-
-        # Format 2:
-        # PHILLY - AUGUST 13TH
-        # FORT COLLINS, C.O. - AUGUST 20TH - 22ND
-        location_first = re.split(
-            rf"\s*[-–—]\s*(?=(?:{month_pattern})\b)",
-            upper,
-            maxsplit=1,
-        )
-
-        if len(location_first) > 1:
-            location = location_first[0].strip(" ,-")
-
-            location = re.sub(
-                r"^\**NETFLIX TAPING\**\s*",
-                "",
-                location,
-            ).strip()
-
-            return LinktreeScraper._normalize_location(location)
-
-        return None
+        return linktree_location(text)
 
     
     @staticmethod
@@ -303,7 +263,7 @@ class LinktreeScraper(BaseScraper):
                     event_id=event_id,
                     date=start_date,
                     end_date=end_date,
-                    venue=label,
+                    venue=linktree_venue(label),
                     location=location,
                     ticket_url=href,
                     sold_out=None,

@@ -42,11 +42,16 @@ jobs:
           tests/test_database.py
           tests/test_run.py
           tests/test_changes.py
+          tests/test_app.py
+          tests/test_normalization.py
 
       - name: Scrape events
         env:
           PUNCHUP_SUPABASE_KEY: ${{ secrets.PUNCHUP_SUPABASE_KEY }}
         run: python run.py
+
+      - name: Geocode new event locations
+        run: python geocode.py
 
       - name: Print change digest
         run: python changes.py
