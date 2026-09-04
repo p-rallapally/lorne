@@ -118,13 +118,13 @@ python run.py
 Run the website locally:
 
 ```bash
-flask --app app run
+uvicorn app:app --reload
 ```
 
 In production (including Render), use:
 
 ```bash
-gunicorn app:app
+uvicorn app:app --host 0.0.0.0 --port $PORT
 ```
 
 Show the concise summary from the latest pipeline run:

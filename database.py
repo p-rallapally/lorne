@@ -143,6 +143,20 @@ def active_events() -> list[sqlite3.Row]:
         ).fetchall()
 
 
+def performer_names() -> list[str]:
+    """Return performer names that have active events."""
+    with connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT DISTINCT performer
+            FROM events
+            WHERE active = 1
+            ORDER BY performer COLLATE NOCASE
+            """
+        ).fetchall()
+    return [row["performer"] for row in rows]
+
+
 def upsert_events(events: list[Event]) -> None:
     with connect() as connection:
         _upsert_events(connection, events, _now())
